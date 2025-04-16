@@ -357,6 +357,23 @@
         
         clearButton.addEventListener('click', clearChat);
         saveButton.addEventListener('click', saveChatHistory);
+        document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    
+});
+
+document.addEventListener('keydown', function(e) {
+    // Bloqueia F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+    if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I') || // Ctrl+Shift+I
+        (e.ctrlKey && e.shiftKey && e.key === 'J') || // Ctrl+Shift+J
+        (e.ctrlKey && e.key === 'u')                  // Ctrl+U
+    ) {
+        e.preventDefault();
+        alert('Todos os direitos autorais reservados a yuri.');
+    }
+});
         
         // Initialize the chat
         initChat();
