@@ -579,7 +579,7 @@ saveButton.addEventListener('click', saveChatHistory);
 // Protection against inspection
 document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
-    addSystemMessage('🔒 Ação não permitida');
+    addSystemMessage('🔒 use cntrl + C para copiar');
 });
 
 document.addEventListener('keydown', function(e) {
