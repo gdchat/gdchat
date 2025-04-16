@@ -254,7 +254,7 @@
     </footer>
 
     <script>
-        // Configuration
+    // Configuration
 const configuracoesAcesso = (function() {
     const partes = [
         "AIzaSyAk", 
@@ -281,8 +281,8 @@ let chatHistory = JSON.parse(localStorage.getItem('gdchat_history')) || [];
 let lastMessageTime = 0;
 
 // Scroll control variables
-let userIsScrolling = false;
-let scrollTimeout;
+let userScrolledUp = false;
+let lastScrollPosition = 0;
 
 // Quick replies
 const quickReplies = [
@@ -293,11 +293,13 @@ const quickReplies = [
 ];
 
 // Smart scroll function
-function smartScroll() {
-    const isNearBottom = chatOutput.scrollHeight - chatOutput.scrollTop - chatOutput.clientHeight < 50;
+function smartScroll(forceScroll = false) {
+    const chat = chatOutput;
+    const isNearBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 100;
     
-    if (!userIsScrolling && isNearBottom) {
-        chatOutput.scrollTop = chatOutput.scrollHeight;
+    if (forceScroll || !userScrolledUp || isNearBottom) {
+        chat.scrollTop = chat.scrollHeight;
+        userScrolledUp = false;
     }
 }
 
@@ -307,7 +309,7 @@ function initChat() {
     chatOutput.innerHTML = '';
     
     // Add welcome messages only if chat is empty
-    if (chatHistory.length === 1) {
+    if (chatHistory.length === 0) {
         addSystemMessage("=== Bem-vindo ao GDCHAT ===");
         addSystemMessage("Comandos especiais:");
         addSystemMessage("- 'sair', 'fim' ou 'exit' para encerrar");
@@ -338,13 +340,14 @@ function initChat() {
 
     // Scroll event listener
     chatOutput.addEventListener('scroll', () => {
-        userIsScrolling = true;
-        clearTimeout(scrollTimeout);
+        const currentScroll = chatOutput.scrollTop;
         
-        scrollTimeout = setTimeout(() => {
-            userIsScrolling = false;
-            smartScroll();
-        }, 1000);
+        if (currentScroll < lastScrollPosition && 
+            currentScroll < chatOutput.scrollHeight - chatOutput.clientHeight - 200) {
+            userScrolledUp = true;
+        }
+        
+        lastScrollPosition = currentScroll;
     });
 }
 
@@ -389,7 +392,12 @@ function addMessage(role, content, isTyping = false) {
         chatOutput.appendChild(messageDiv);
     }
     
-    smartScroll();
+    // Scroll behavior - force for bot messages, normal for others
+    if (role === 'bot' && !isTyping) {
+        smartScroll(true);
+    } else {
+        smartScroll();
+    }
     
     // Save to history (except typing indicators)
     if (!isTyping) {
@@ -415,7 +423,7 @@ function saveChatToCache() {
 // Send message to Gemini API
 async function sendMessage(message) {
     // Flood protection
-    if (Date.now() - lastMessageTime < 15000) {
+    if (Date.now() - lastMessageTime < 1000) {
         addSystemMessage("⚠️ Aguarde 1 segundo entre mensagens");
         return;
     }
