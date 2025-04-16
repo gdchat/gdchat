@@ -120,7 +120,7 @@ body {
         
         .typing-indicator::after {
             content: '...';
-            animation: dots 1.5s infinite;
+            animation: dots 0.5s infinite;
         }
         
         @keyframes dots {
