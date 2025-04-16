@@ -286,10 +286,10 @@ let lastScrollPosition = 0;
 
 // Quick replies
 const quickReplies = [
-    "Como resetar senha?", 
-    "Onde encontrar manual?", 
-    "Prazo para documentos?",
-    "Preciso de ajuda com login"
+    "Corrigir textos ortograficamente:", 
+    "Em que você pode me ajudar??", 
+    "Quais são os Prazos de eliminação para documentos?",
+    
 ];
 
 // Smart scroll function
@@ -423,8 +423,8 @@ function saveChatToCache() {
 // Send message to Gemini API
 async function sendMessage(message) {
     // Flood protection
-    if (Date.now() - lastMessageTime < 1000) {
-        addSystemMessage("⚠️ Aguarde 1 segundo entre mensagens");
+    if (Date.now() - lastMessageTime < 15000) {
+        addSystemMessage("⚠️ Aguarde 15 segundo entre mensagens");
         return;
     }
     lastMessageTime = Date.now();
