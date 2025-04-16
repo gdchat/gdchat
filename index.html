@@ -309,7 +309,7 @@ function initChat() {
     chatOutput.innerHTML = '';
     
     // Add welcome messages only if chat is empty
-    if (chatHistory.length === 0) {
+    if (chatHistory.length === 1) {
         addSystemMessage("=== Bem-vindo ao GDCHAT ===");
         addSystemMessage("Comandos especiais:");
         addSystemMessage("- 'sair', 'fim' ou 'exit' para encerrar");
