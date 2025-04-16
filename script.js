@@ -175,7 +175,7 @@ async function sendMessage(message) {
     }
 
     addMessage('user', message);
-    addMessage('bot', 'GDCHAT está digitando...', true);
+    addMessage('bot', 'Carregando resposta...', true);
 
     try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${configuracoesAcesso}`, {
