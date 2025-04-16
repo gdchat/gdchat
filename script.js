@@ -265,10 +265,7 @@ textInput.addEventListener('keypress', (e) => {
 clearButton.addEventListener('click', clearChat);
 saveButton.addEventListener('click', saveChatHistory);
 
-document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-    addSystemMessage('🔒 use cntrl + C para copiar');
-});
+
 
 document.addEventListener('keydown', function(e) {
     if (
