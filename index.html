@@ -167,17 +167,32 @@
         const clearButton = document.getElementById('clear-button');
         const saveButton = document.getElementById('save-button');
         
-        // Chat state
-        let chatHistory = [];
+        // Chat state - Load from localStorage if available
+        let chatHistory = JSON.parse(localStorage.getItem('gdchat_history')) || [];
         
-        // Initialize the chat with welcome message
+        // Initialize the chat with welcome message or history
         function initChat() {
-            addSystemMessage("=== Bem-vindo ao GDCHAT ===");
-            addSystemMessage("Digite sua mensagem e clique em Enviar");
-            addSystemMessage("Comandos especiais:");
-            addSystemMessage("- 'sair', 'fim' ou 'exit' para encerrar");
-            addSystemMessage("- Use 'Limpar' para reiniciar a conversa");
-            addSystemMessage("- 'Salvar' guarda o histórico no arquivo");
+            // Clear the chat output
+            chatOutput.innerHTML = '';
+            
+            // Add welcome messages only if chat is empty
+            if (chatHistory.length === 0) {
+                addSystemMessage("=== Bem-vindo ao GDCHAT ===");
+                addSystemMessage("Digite sua mensagem e clique em Enviar");
+                addSystemMessage("Comandos especiais:");
+                addSystemMessage("- 'sair', 'fim' ou 'exit' para encerrar");
+                addSystemMessage("- Use 'Limpar' para reiniciar a conversa");
+                addSystemMessage("- 'Salvar' guarda o histórico no arquivo");
+            } else {
+                // Rebuild chat from history
+                chatHistory.forEach(msg => {
+                    if (msg.role === 'system') {
+                        addSystemMessage(msg.content);
+                    } else {
+                        addMessage(msg.role, msg.content);
+                    }
+                });
+            }
         }
         
         // Add a message to the chat output
@@ -224,6 +239,16 @@
             }
             
             chatOutput.scrollTop = chatOutput.scrollHeight;
+            
+            // Save to history (except typing indicators)
+            if (!isTyping) {
+                if (role === 'system') {
+                    chatHistory.push({ role: 'system', content: content });
+                } else {
+                    chatHistory.push({ role: role, content: content });
+                }
+                saveChatToCache();
+            }
         }
         
         // Helper for system messages
@@ -231,11 +256,15 @@
             addMessage('system', content);
         }
         
+        // Save chat to localStorage
+        function saveChatToCache() {
+            localStorage.setItem('gdchat_history', JSON.stringify(chatHistory));
+        }
+        
         // Send message to Gemini API
         async function sendMessage(message) {
             // Add user message to chat
             addMessage('user', message);
-            chatHistory.push({ role: 'user', parts: [{ text: message }] });
             
             // Show typing indicator
             addMessage('bot', 'GDCHAT está digitando...', true);
@@ -247,7 +276,10 @@
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        contents: chatHistory,
+                        contents: chatHistory.filter(msg => msg.role !== 'system').map(msg => ({
+                            role: msg.role === 'user' ? 'user' : 'model',
+                            parts: [{ text: msg.content }]
+                        })),
                         generationConfig: {
                             temperature: 0.9,
                             topK: 1,
@@ -285,7 +317,6 @@
                 if (data.candidates && data.candidates[0].content.parts) {
                     const botResponse = data.candidates[0].content.parts[0].text;
                     addMessage('bot', botResponse);
-                    chatHistory.push({ role: 'model', parts: [{ text: botResponse }] });
                 } else {
                     throw new Error('Unexpected response format from API');
                 }
@@ -303,8 +334,8 @@
                 let content = '';
                 
                 chatHistory.forEach(message => {
-                    const role = message.role === 'user' ? 'Você' : 'GDCHAT';
-                    content += `${role}: ${message.parts[0].text}\n\n`;
+                    const role = message.role === 'user' ? 'Você' : (message.role === 'system' ? 'Sistema' : 'GDCHAT');
+                    content += `${role}: ${message.content}\n\n`;
                 });
                 
                 const blob = new Blob([content], { type: 'text/plain' });
@@ -328,6 +359,7 @@
         // Clear the chat history
         function clearChat() {
             chatHistory = [];
+            localStorage.removeItem('gdchat_history');
             chatOutput.innerHTML = '';
             addSystemMessage("> Histórico limpo. Conversa reiniciada.");
         }
@@ -357,23 +389,24 @@
         
         clearButton.addEventListener('click', clearChat);
         saveButton.addEventListener('click', saveChatHistory);
+        
+        // Protection against inspection
         document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-    
-});
-
-document.addEventListener('keydown', function(e) {
-    // Bloqueia F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
-    if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && e.key === 'I') || // Ctrl+Shift+I
-        (e.ctrlKey && e.shiftKey && e.key === 'J') || // Ctrl+Shift+J
-        (e.ctrlKey && e.key === 'u')                  // Ctrl+U
-    ) {
-        e.preventDefault();
-        alert('Todos os direitos autorais reservados a yuri.');
-    }
-});
+            e.preventDefault();
+            addSystemMessage('⚠️ Inspeção desativada');
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (
+                e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && e.key === 'I') || // Ctrl+Shift+I
+                (e.ctrlKey && e.shiftKey && e.key === 'J') || // Ctrl+Shift+J
+                (e.ctrlKey && e.key === 'u')                  // Ctrl+U
+            ) {
+                e.preventDefault();
+                addSystemMessage('🔒 Todos os direitos reservados');
+            }
+        });
         
         // Initialize the chat
         initChat();
