@@ -30,7 +30,7 @@ let lastScrollPosition = 0;
 
 // Quick replies
 const quickReplies = [
-    "Corrigir textos ortograficamente:", 
+    "Corrigir textos gramaticalmente e retornar apenas o texto pronto:", 
     "Em que você pode me ajudar?" 
 ];
 
